@@ -19,14 +19,28 @@ const fs = require("fs");
 //  Constants                                                           //
 // ------------------------------------------------------------------ //
 
-const isDev = process.argv.includes("--dev");
-const PROJECT_ROOT = path.join(__dirname, "..");
-const CONFIG_PATH = path.join(PROJECT_ROOT, "config", "settings.json");
+const isDev = process.argv.includes("--dev") || !app.isPackaged;
+const PROJECT_ROOT = isDev ? path.join(__dirname, "..") : process.resourcesPath;
 
-// Python backend
-const PYTHON_SCRIPT = path.join(PROJECT_ROOT, "backend", "main.py");
-// In packaged app, use bundled Python executable
-const PYTHON_EXE = process.env.PYTHON_PATH || "python";
+// Python paths
+let pythonExe;
+let pythonArgs;
+
+if (isDev) {
+  // Use virtual environment in development
+  pythonExe = path.join(PROJECT_ROOT, "backend", ".venv", "Scripts", "python.exe");
+  if (!fs.existsSync(pythonExe)) pythonExe = "python"; // Fallback
+  pythonArgs = [path.join(PROJECT_ROOT, "backend", "main.py")];
+} else {
+  // Use packaged binary in production
+  // We'll bundle it into backend/dist/main/main.exe via PyInstaller
+  pythonExe = path.join(PROJECT_ROOT, "backend", "dist", "main", "main.exe");
+  pythonArgs = [];
+}
+
+const CONFIG_PATH = isDev 
+  ? path.join(PROJECT_ROOT, "config", "settings.json")
+  : path.join(app.getPath("userData"), "settings.json");
 
 // ------------------------------------------------------------------ //
 //  State                                                               //
@@ -44,10 +58,10 @@ let appReady = false;
 // ------------------------------------------------------------------ //
 
 function startPythonBackend() {
-  console.log(`[main] Spawning Python: ${PYTHON_EXE} ${PYTHON_SCRIPT}`);
+  console.log(`[main] Spawning Backend: ${pythonExe} ${pythonArgs.join(" ")}`);
 
-  pythonProcess = spawn(PYTHON_EXE, [PYTHON_SCRIPT], {
-    cwd: path.join(PROJECT_ROOT, "backend"),
+  pythonProcess = spawn(pythonExe, pythonArgs, {
+    cwd: path.dirname(pythonExe),
     env: { ...process.env },
     stdio: ["pipe", "pipe", "pipe"],
   });
@@ -57,7 +71,7 @@ function startPythonBackend() {
   });
 
   pythonProcess.on("exit", (code) => {
-    console.log(`[main] Python exited with code ${code}`);
+    console.log(`[main] Backend exited with code ${code}`);
     if (appReady) {
       // Attempt restart after a brief delay
       setTimeout(startPythonBackend, 2000);
