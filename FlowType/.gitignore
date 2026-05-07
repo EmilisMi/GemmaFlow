@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+ENV/
+*.egg-info/
+.pytest_cache/
+
+# PyInstaller
+backend/build/
+backend/dist/
+*.spec
+
+# Node / Electron
+node_modules/
+frontend/node_modules/
+.npm
+npm-debug.log*
+
+# Build Output
+dist/
+out/
+release/
+
+# Local Config & Data
+config/settings.json
+models/
+*.wav
+flowtype_*.wav
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment variables
+.env
+.env.local
