@@ -59,7 +59,7 @@ def emit_error(message: str) -> None:
 class FlowTypeApp:
     def __init__(self):
         self.settings = load_settings()
-        self.recorder = AudioRecorder()
+        self.recorder = AudioRecorder(on_level=self._on_audio_level)
         self.whisper = WhisperEngine()
         self.injector = PasteInjector(
             paste_delay_ms=self.settings.get("paste_delay_ms", 150)
@@ -149,9 +149,12 @@ class FlowTypeApp:
                 compute_type=compute_type,
                 on_done=_on_transcription_done,
             )
-
         except Exception as e:
             emit_error(f"Failed during stop/transcribe: {e}")
+
+    def _on_audio_level(self, level: float) -> None:
+        """Called when audio volume level changes."""
+        emit("audio_level", level=level)
 
     # ---------------------------------------------------------------- #
     #  IPC command dispatch                                              #

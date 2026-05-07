@@ -139,6 +139,12 @@ function handlePythonEvent(msg) {
       }
       break;
 
+    case "audio_level":
+      if (indicatorWin && !indicatorWin.isDestroyed()) {
+        indicatorWin.webContents.send("audio_level", payload.level);
+      }
+      break;
+
     case "models":
       if (settingsWin && !settingsWin.isDestroyed()) {
         settingsWin.webContents.send("models_loaded", payload.models);
@@ -157,14 +163,14 @@ function handlePythonEvent(msg) {
 
 function createIndicatorWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-  const winWidth = 240; // Wider for waveform
+  const winWidth = 200; // Increased to avoid clipping
   const winHeight = 80;
 
   indicatorWin = new BrowserWindow({
     width: winWidth,
     height: winHeight,
     x: Math.floor((width - winWidth) / 2),
-    y: height - winHeight - 40, // Slightly closer to bottom
+    y: height - winHeight - 30,
     frame: false,
     transparent: true,
     alwaysOnTop: true,

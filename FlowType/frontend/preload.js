@@ -24,6 +24,7 @@ contextBridge.exposeInMainWorld("flowtype", {
       "devices_loaded",
       "models_loaded",
       "transcription_done",
+      "audio_level",
     ];
     if (allowed.includes(channel)) {
       ipcRenderer.on(channel, (_, ...args) => callback(...args));
