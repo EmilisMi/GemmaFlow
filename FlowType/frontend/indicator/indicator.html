@@ -6,9 +6,9 @@
     <title>FlowType Indicator</title>
     <style>
         :root {
-            --recording-red: #ff3b30;
-            --transcribing-blue: #007aff;
-            --glow-opacity: 0.3;
+            --bar-color: #ffffff;
+            --bg-color: #000000;
+            --accent-red: #ff3b30;
         }
 
         * {
@@ -18,107 +18,149 @@
         }
 
         html, body {
-            width: 72px;
-            height: 72px;
+            width: 240px;
+            height: 80px;
             background: transparent;
             overflow: hidden;
-            -webkit-user-select: none;
-            user-select: none;
-            font-family: -apple-system, system-ui, sans-serif;
-        }
-
-        .container {
-            width: 72px;
-            height: 72px;
             display: flex;
             align-items: center;
             justify-content: center;
-            -webkit-app-region: drag;
-            cursor: grab;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
-        /* The Dot */
-        .dot {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
+        /* The Pill Container (Dynamic Island Style) */
+        .pill {
+            background-color: var(--bg-color);
+            height: 44px;
+            padding: 0 20px;
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            transform: scale(0);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
             position: relative;
-            z-index: 10;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            transform: scale(0.6);
-            opacity: 0;
         }
 
-        /* Pulsing Aura */
-        .aura {
-            position: absolute;
-            width: 32px;
-            height: 32px;
+        body.recording .pill, body.transcribing .pill {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        /* Status Dot (Small red dot on the left) */
+        .status-dot {
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-            z-index: 5;
+            background-color: var(--accent-red);
+            margin-right: 8px;
             opacity: 0;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            filter: blur(8px);
+            transition: opacity 0.3s;
         }
 
-        /* States */
-        body.recording .dot {
+        body.recording .status-dot {
             opacity: 1;
-            transform: scale(1);
-            background-color: var(--recording-red);
-            box-shadow: 0 0 15px rgba(255, 59, 48, 0.5);
-            animation: breathe 1.5s ease-in-out infinite;
+            animation: pulse-red 1.5s infinite;
         }
 
-        body.recording .aura {
-            opacity: 1;
-            background-color: var(--recording-red);
-            animation: expand-aura 1.5s ease-in-out infinite;
+        /* Waveform Bars */
+        .waveform {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            height: 32px;
         }
 
-        body.transcribing .dot {
-            opacity: 1;
-            transform: scale(1);
-            background-color: var(--transcribing-blue);
-            box-shadow: 0 0 15px rgba(0, 122, 255, 0.5);
-            animation: spin-wave 2s linear infinite;
-            border-radius: 40%; /* Slightly squircle during transcribing */
+        .bar {
+            width: 4px;
+            height: 4px;
+            background-color: var(--bar-color);
+            border-radius: 2px;
+            transition: all 0.2s ease-in-out;
+            opacity: 0.8;
         }
 
-        body.transcribing .aura {
-            opacity: 1;
-            background-color: var(--transcribing-blue);
-            filter: blur(12px);
-            animation: expand-aura 1s ease-in-out infinite;
+        /* Simulate voice activity */
+        body.recording .bar {
+            animation: wave 1.2s ease-in-out infinite;
         }
 
-        body.idle .dot {
-            opacity: 0;
-            transform: scale(0.4);
+        /* Transcribing state */
+        body.transcribing .bar {
+            background-color: #007aff;
+            animation: transcribing-pulse 0.8s ease-in-out infinite;
         }
 
-        @keyframes breathe {
-            0%, 100% { transform: scale(1); filter: brightness(1); }
-            50% { transform: scale(1.1); filter: brightness(1.2); }
+        /* Randomizing initial states */
+        .bar:nth-child(odd) { animation-duration: 0.8s; }
+        .bar:nth-child(3n) { animation-duration: 1.5s; }
+        .bar:nth-child(4n) { animation-duration: 1s; }
+
+        .bar:nth-child(1)  { animation-delay: 0.1s; }
+        .bar:nth-child(2)  { animation-delay: 0.3s; }
+        .bar:nth-child(3)  { animation-delay: 0.2s; }
+        .bar:nth-child(4)  { animation-delay: 0.5s; }
+        .bar:nth-child(5)  { animation-delay: 0.1s; }
+        .bar:nth-child(6)  { animation-delay: 0.4s; }
+        .bar:nth-child(7)  { animation-delay: 0.2s; }
+        .bar:nth-child(8)  { animation-delay: 0.6s; }
+        .bar:nth-child(9)  { animation-delay: 0.3s; }
+        .bar:nth-child(10) { animation-delay: 0.1s; }
+        .bar:nth-child(11) { animation-delay: 0.4s; }
+        .bar:nth-child(12) { animation-delay: 0.2s; }
+        .bar:nth-child(13) { animation-delay: 0.5s; }
+        .bar:nth-child(14) { animation-delay: 0.3s; }
+        .bar:nth-child(15) { animation-delay: 0.6s; }
+        .bar:nth-child(16) { animation-delay: 0.2s; }
+        .bar:nth-child(17) { animation-delay: 0.4s; }
+        .bar:nth-child(18) { animation-delay: 0.1s; }
+        .bar:nth-child(19) { animation-delay: 0.5s; }
+        .bar:nth-child(20) { animation-delay: 0.3s; }
+
+        @keyframes wave {
+            0%, 100% { transform: scaleY(1); opacity: 0.4; }
+            50% { transform: scaleY(6); opacity: 1; }
         }
 
-        @keyframes expand-aura {
-            0% { transform: scale(1); opacity: 0.4; }
-            50% { transform: scale(1.8); opacity: 0.1; }
-            100% { transform: scale(1); opacity: 0.4; }
+        @keyframes transcribing-pulse {
+            0%, 100% { transform: scaleY(1); opacity: 0.5; }
+            50% { transform: scaleY(2.5); opacity: 1; }
         }
 
-        @keyframes spin-wave {
-            0% { transform: rotate(0deg) scale(1); }
-            50% { transform: rotate(180deg) scale(0.9); border-radius: 50%; }
-            100% { transform: rotate(360deg) scale(1); }
+        @keyframes pulse-red {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.5; }
         }
     </style>
 </head>
 <body class="idle">
-    <div class="container">
-        <div class="aura"></div>
-        <div class="dot"></div>
+    <div class="pill">
+        <div class="status-dot"></div>
+        <div class="waveform">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
     </div>
     <script src="indicator.js"></script>
 </body>

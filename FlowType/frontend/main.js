@@ -157,12 +157,14 @@ function handlePythonEvent(msg) {
 
 function createIndicatorWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+  const winWidth = 240; // Wider for waveform
+  const winHeight = 80;
 
   indicatorWin = new BrowserWindow({
-    width: 72,
-    height: 72,
-    x: width - 100,
-    y: height - 100,
+    width: winWidth,
+    height: winHeight,
+    x: Math.floor((width - winWidth) / 2),
+    y: height - winHeight - 40, // Slightly closer to bottom
     frame: false,
     transparent: true,
     alwaysOnTop: true,
@@ -177,22 +179,16 @@ function createIndicatorWindow() {
     },
   });
 
-  // Allow dragging to reposition
-  indicatorWin.setIgnoreMouseEvents(false);
+  // Force top-most level
+  indicatorWin.setAlwaysOnTop(true, 'screen-saver');
+  indicatorWin.setVisibleOnAllWorkspaces(true);
+  
+  // Make it click-through so it doesn't block the screen
+  indicatorWin.setIgnoreMouseEvents(true);
 
   indicatorWin.loadFile(path.join(__dirname, "indicator", "indicator.html"));
 
-  // Restore saved position
-  const savedPos = loadIndicatorPosition();
-  if (savedPos) {
-    indicatorWin.setPosition(savedPos.x, savedPos.y);
-  }
-
-  // Save position on move
-  indicatorWin.on("moved", () => {
-    const [x, y] = indicatorWin.getPosition();
-    saveIndicatorPosition(x, y);
-  });
+  // Note: Removed saved position logic to keep it centered as requested
 }
 
 function showIndicator() {
