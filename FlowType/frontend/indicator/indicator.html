@@ -1,117 +1,125 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FlowType Indicator</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowType Indicator</title>
+    <style>
+        :root {
+            --recording-red: #ff3b30;
+            --transcribing-blue: #007aff;
+            --glow-opacity: 0.3;
+        }
 
-    html, body {
-      width: 72px;
-      height: 72px;
-      background: transparent;
-      overflow: hidden;
-      -webkit-user-select: none;
-      user-select: none;
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    .container {
-      width: 72px;
-      height: 72px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      -webkit-app-region: drag;
-      cursor: grab;
-    }
+        html, body {
+            width: 72px;
+            height: 72px;
+            background: transparent;
+            overflow: hidden;
+            -webkit-user-select: none;
+            user-select: none;
+            font-family: -apple-system, system-ui, sans-serif;
+        }
 
-    /* Outer glow ring */
-    .ring {
-      position: absolute;
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background: transparent;
-      border: 2px solid rgba(255, 60, 60, 0.0);
-      transition: border-color 0.3s ease, transform 0.3s ease;
-    }
+        .container {
+            width: 72px;
+            height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-app-region: drag;
+            cursor: grab;
+        }
 
-    /* Core circle */
-    .dot {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 35% 35%, #ff6b6b, #e63946);
-      box-shadow:
-        0 0 0 0 rgba(230, 57, 70, 0.7),
-        0 2px 12px rgba(230, 57, 70, 0.5);
-      opacity: 0;
-      transform: scale(0.6);
-      transition: opacity 0.25s ease, transform 0.25s ease;
-    }
+        /* The Dot */
+        .dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            position: relative;
+            z-index: 10;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: scale(0.6);
+            opacity: 0;
+        }
 
-    /* RECORDING state */
-    body.recording .dot {
-      opacity: 1;
-      transform: scale(1);
-      animation: pulse 1.4s ease-in-out infinite;
-    }
+        /* Pulsing Aura */
+        .aura {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            z-index: 5;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            filter: blur(8px);
+        }
 
-    body.recording .ring {
-      border-color: rgba(255, 60, 60, 0.35);
-      animation: ring-expand 1.4s ease-in-out infinite;
-    }
+        /* States */
+        body.recording .dot {
+            opacity: 1;
+            transform: scale(1);
+            background-color: var(--recording-red);
+            box-shadow: 0 0 15px rgba(255, 59, 48, 0.5);
+            animation: breathe 1.5s ease-in-out infinite;
+        }
 
-    /* TRANSCRIBING state */
-    body.transcribing .dot {
-      opacity: 1;
-      transform: scale(1);
-      background: radial-gradient(circle at 35% 35%, #ffd166, #f4a261);
-      box-shadow:
-        0 0 0 0 rgba(244, 162, 97, 0.6),
-        0 2px 12px rgba(244, 162, 97, 0.4);
-      animation: spin-pulse 1s ease-in-out infinite;
-    }
+        body.recording .aura {
+            opacity: 1;
+            background-color: var(--recording-red);
+            animation: expand-aura 1.5s ease-in-out infinite;
+        }
 
-    body.transcribing .ring {
-      border-color: rgba(244, 162, 97, 0.3);
-    }
+        body.transcribing .dot {
+            opacity: 1;
+            transform: scale(1);
+            background-color: var(--transcribing-blue);
+            box-shadow: 0 0 15px rgba(0, 122, 255, 0.5);
+            animation: spin-wave 2s linear infinite;
+            border-radius: 40%; /* Slightly squircle during transcribing */
+        }
 
-    /* IDLE state — hidden */
-    body.idle .dot {
-      opacity: 0;
-      transform: scale(0.6);
-    }
+        body.transcribing .aura {
+            opacity: 1;
+            background-color: var(--transcribing-blue);
+            filter: blur(12px);
+            animation: expand-aura 1s ease-in-out infinite;
+        }
 
-    @keyframes pulse {
-      0%   { box-shadow: 0 0 0 0   rgba(230, 57, 70, 0.7), 0 2px 12px rgba(230, 57, 70, 0.5); }
-      50%  { box-shadow: 0 0 0 10px rgba(230, 57, 70, 0.0), 0 2px 16px rgba(230, 57, 70, 0.6); }
-      100% { box-shadow: 0 0 0 0   rgba(230, 57, 70, 0.7), 0 2px 12px rgba(230, 57, 70, 0.5); }
-    }
+        body.idle .dot {
+            opacity: 0;
+            transform: scale(0.4);
+        }
 
-    @keyframes ring-expand {
-      0%   { transform: scale(1);    opacity: 0.6; }
-      50%  { transform: scale(1.25); opacity: 0.0; }
-      100% { transform: scale(1);    opacity: 0.6; }
-    }
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); filter: brightness(1); }
+            50% { transform: scale(1.1); filter: brightness(1.2); }
+        }
 
-    @keyframes spin-pulse {
-      0%   { transform: scale(0.9) rotate(0deg); }
-      50%  { transform: scale(1.05) rotate(180deg); }
-      100% { transform: scale(0.9) rotate(360deg); }
-    }
-  </style>
+        @keyframes expand-aura {
+            0% { transform: scale(1); opacity: 0.4; }
+            50% { transform: scale(1.8); opacity: 0.1; }
+            100% { transform: scale(1); opacity: 0.4; }
+        }
+
+        @keyframes spin-wave {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(0.9); border-radius: 50%; }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+    </style>
 </head>
 <body class="idle">
-  <div class="container">
-    <div class="ring"></div>
-    <div class="dot"></div>
-  </div>
-  <script src="indicator.js"></script>
+    <div class="container">
+        <div class="aura"></div>
+        <div class="dot"></div>
+    </div>
+    <script src="indicator.js"></script>
 </body>
 </html>

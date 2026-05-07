@@ -1,6 +1,6 @@
 /**
  * FlowType — Settings Renderer
- * Handles all settings UI interactions and IPC communication.
+ * Handles Apple-style UI logic and IPC communication.
  */
 
 // ------------------------------------------------------------------ //
@@ -13,321 +13,214 @@ let captureMode = false;
 let capturedKeys = new Set();
 
 // ------------------------------------------------------------------ //
-//  Navigation                                                          //
+//  Window Controls                                                     //
 // ------------------------------------------------------------------ //
 
-document.querySelectorAll(".nav-item").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    const target = btn.dataset.section;
-    document.querySelectorAll(".nav-item").forEach((b) => b.classList.remove("active"));
-    document.querySelectorAll(".section").forEach((s) => s.classList.remove("active"));
-    btn.classList.add("active");
-    document.getElementById(`section-${target}`).classList.add("active");
-  });
+document.getElementById("close-btn").addEventListener("click", () => {
+    window.flowtype.closeSettings();
+});
+
+document.getElementById("minimize-btn").addEventListener("click", () => {
+    window.flowtype.minimizeSettings();
 });
 
 // ------------------------------------------------------------------ //
-//  Title bar                                                           //
+//  Status & UI Helpers                                                 //
 // ------------------------------------------------------------------ //
 
-document.getElementById("btn-close").addEventListener("click", () => {
-  window.flowtype.closeSettings();
-});
-
-document.getElementById("btn-minimize").addEventListener("click", () => {
-  window.flowtype.minimizeSettings();
-});
-
-// ------------------------------------------------------------------ //
-//  Status indicator                                                    //
-// ------------------------------------------------------------------ //
-
-function setStatus(state, text) {
-  const dot = document.getElementById("status-dot");
-  const label = document.getElementById("status-text");
-  dot.className = "status-dot " + state;
-  label.textContent = text;
+function setStatus(text) {
+    const label = document.getElementById("status-text");
+    if (label) label.textContent = text;
 }
 
 // ------------------------------------------------------------------ //
-//  Settings load / render                                              //
+//  Settings Sync                                                       //
 // ------------------------------------------------------------------ //
 
 function applySettings(settings) {
-  currentSettings = { ...settings };
-  pendingSettings = { ...settings };
+    currentSettings = { ...settings };
+    pendingSettings = { ...settings };
 
-  // Device select
-  const deviceSel = document.getElementById("device-select");
-  if (settings.device_index !== null && settings.device_index !== undefined) {
-    deviceSel.value = String(settings.device_index);
-  } else {
-    deviceSel.value = "";
-  }
+    // Hotkey
+    const hotkeyBtn = document.getElementById("hotkey-btn");
+    hotkeyBtn.textContent = settings.hotkey || "ctrl+space";
 
-  // Mode radios
-  document.querySelectorAll("input[name='mode']").forEach((r) => {
-    r.checked = r.value === settings.mode;
-  });
+    // Mode
+    document.getElementById("mode-select").value = settings.mode || "toggle";
 
-  // Hotkey
-  document.getElementById("hotkey-keys").textContent = settings.hotkey || "ctrl+space";
+    // Feedback
+    document.getElementById("feedback-toggle").checked = settings.audio_feedback !== false;
 
-  // Language
-  const langSel = document.getElementById("lang-select");
-  langSel.value = settings.language || "";
+    // Paste Delay
+    document.getElementById("paste-delay").value = settings.paste_delay_ms ?? 150;
 
-  // Toggles
-  document.getElementById("toggle-startup").checked = !!settings.launch_at_startup;
-  document.getElementById("toggle-sounds").checked = settings.audio_feedback !== false;
+    // Handle selects (Model and Device populated async)
+    if (settings.model) {
+        document.getElementById("model-select").value = settings.model;
+    }
+    if (settings.device_index !== null) {
+        document.getElementById("device-select").value = String(settings.device_index);
+    }
 
-  // Paste delay
-  const delaySlider = document.getElementById("paste-delay");
-  const delay = settings.paste_delay_ms ?? 150;
-  delaySlider.value = delay;
-  document.getElementById("paste-delay-label").textContent = `${delay}ms`;
-
-  hideSaveBar();
-  setStatus("ready", "Ready");
-}
-
-function markDirty() {
-  showSaveBar();
+    setStatus("Ready");
 }
 
 // ------------------------------------------------------------------ //
-//  Devices                                                             //
+//  Hotkey Capture                                                      //
 // ------------------------------------------------------------------ //
 
-function populateDevices({ devices, default_index }) {
-  const sel = document.getElementById("device-select");
-  sel.innerHTML = "";
+const hotkeyBtn = document.getElementById("hotkey-btn");
 
-  const defaultOpt = document.createElement("option");
-  defaultOpt.value = "";
-  defaultOpt.textContent = "System Default";
-  sel.appendChild(defaultOpt);
-
-  devices.forEach((dev) => {
-    const opt = document.createElement("option");
-    opt.value = String(dev.index);
-    opt.textContent = dev.name + (dev.is_default ? " (default)" : "");
-    sel.appendChild(opt);
-  });
-
-  // Restore saved value
-  const saved = currentSettings.device_index;
-  sel.value = saved !== null && saved !== undefined ? String(saved) : "";
-}
-
-document.getElementById("btn-refresh-devices").addEventListener("click", () => {
-  window.flowtype.getDevices();
+hotkeyBtn.addEventListener("click", () => {
+    if (captureMode) {
+        endCapture(false);
+    } else {
+        startCapture();
+    }
 });
-
-document.getElementById("device-select").addEventListener("change", (e) => {
-  const val = e.target.value;
-  pendingSettings.device_index = val === "" ? null : parseInt(val, 10);
-  markDirty();
-});
-
-// ------------------------------------------------------------------ //
-//  Mode radios                                                         //
-// ------------------------------------------------------------------ //
-
-document.querySelectorAll("input[name='mode']").forEach((r) => {
-  r.addEventListener("change", (e) => {
-    pendingSettings.mode = e.target.value;
-    markDirty();
-  });
-});
-
-// ------------------------------------------------------------------ //
-//  Hotkey capture                                                      //
-// ------------------------------------------------------------------ //
-
-const captureOverlay = document.getElementById("capture-overlay");
-const captureKeysEl = document.getElementById("capture-keys");
-let capturedCombo = "";
-
-document.getElementById("btn-record-hotkey").addEventListener("click", startCapture);
-document.getElementById("btn-cancel-capture").addEventListener("click", endCapture);
 
 function startCapture() {
-  captureMode = true;
-  capturedKeys.clear();
-  capturedCombo = "";
-  captureKeysEl.textContent = "Waiting…";
-  captureOverlay.classList.remove("hidden");
-  document.addEventListener("keydown", onCaptureKeyDown);
-  document.addEventListener("keyup", onCaptureKeyUp);
+    captureMode = true;
+    capturedKeys.clear();
+    hotkeyBtn.textContent = "Waiting...";
+    hotkeyBtn.classList.add("recording");
+    
+    document.addEventListener("keydown", onCaptureKeyDown);
+    document.addEventListener("keyup", onCaptureKeyUp);
 }
 
-function endCapture(saveIt = false) {
-  captureMode = false;
-  captureOverlay.classList.add("hidden");
-  document.removeEventListener("keydown", onCaptureKeyDown);
-  document.removeEventListener("keyup", onCaptureKeyUp);
+function endCapture(save = false) {
+    captureMode = false;
+    hotkeyBtn.classList.remove("recording");
+    document.removeEventListener("keydown", onCaptureKeyDown);
+    document.removeEventListener("keyup", onCaptureKeyUp);
 
-  if (saveIt && capturedCombo) {
-    document.getElementById("hotkey-keys").textContent = capturedCombo;
-    pendingSettings.hotkey = capturedCombo;
-    markDirty();
-  }
-  capturedKeys.clear();
-  capturedCombo = "";
+    if (save) {
+        const combo = buildComboString(capturedKeys);
+        if (combo) {
+            hotkeyBtn.textContent = combo;
+            pendingSettings.hotkey = combo;
+        }
+    } else {
+        hotkeyBtn.textContent = currentSettings.hotkey || "ctrl+space";
+    }
+    capturedKeys.clear();
 }
 
 function onCaptureKeyDown(e) {
-  e.preventDefault();
-  const key = normalizeKey(e);
-  if (key) capturedKeys.add(key);
-  captureKeysEl.textContent = buildComboString(capturedKeys) || "…";
+    e.preventDefault();
+    const key = normalizeKey(e);
+    if (key) capturedKeys.add(key);
+    hotkeyBtn.textContent = buildComboString(capturedKeys) || "...";
 }
 
 function onCaptureKeyUp(e) {
-  e.preventDefault();
-  // When user releases, we lock in the combo
-  const combo = buildComboString(capturedKeys);
-  if (combo && capturedKeys.size > 0) {
-    capturedCombo = combo;
-    endCapture(true);
-  }
+    e.preventDefault();
+    if (capturedKeys.size > 0) {
+        endCapture(true);
+    }
 }
 
 function normalizeKey(e) {
-  const modMap = {
-    Control: "ctrl", Shift: "shift", Alt: "alt", Meta: "meta",
-  };
-  if (modMap[e.key]) return modMap[e.key];
-  if (e.key === " ") return "space";
-  return e.key.toLowerCase();
+    const modMap = { Control: "ctrl", Shift: "shift", Alt: "alt", Meta: "meta" };
+    if (modMap[e.key]) return modMap[e.key];
+    if (e.key === " ") return "space";
+    return e.key.toLowerCase();
 }
 
 function buildComboString(keys) {
-  const order = ["ctrl", "alt", "shift", "meta"];
-  const mods = order.filter((m) => keys.has(m));
-  const regular = [...keys].filter((k) => !order.includes(k));
-  return [...mods, ...regular].join("+");
+    const order = ["ctrl", "alt", "shift", "meta"];
+    const mods = order.filter(m => keys.has(m));
+    const regular = [...keys].filter(k => !order.includes(k));
+    return [...mods, ...regular].join("+");
 }
 
 // ------------------------------------------------------------------ //
-//  Models                                                              //
+//  Population Helpers                                                  //
 // ------------------------------------------------------------------ //
 
-function renderModels(models) {
-  const container = document.getElementById("model-cards");
-  container.innerHTML = "";
-
-  models.forEach((model) => {
-    const card = document.createElement("div");
-    card.className = "model-card" + (model.name === currentSettings.model ? " selected" : "");
-    card.dataset.model = model.name;
-    card.innerHTML = `
-      <div class="model-left">
-        <div class="model-name">${capitalize(model.name)}</div>
-        <div class="model-desc">${model.description}</div>
-      </div>
-      <div class="model-right">
-        <div class="model-size">${model.size_mb} MB</div>
-        <div class="model-badge ${model.cached ? 'cached' : 'missing'}">
-          ${model.cached ? '✓ Cached' : '↓ Download'}
-        </div>
-      </div>
-    `;
-    card.addEventListener("click", () => {
-      document.querySelectorAll(".model-card").forEach((c) => c.classList.remove("selected"));
-      card.classList.add("selected");
-      pendingSettings.model = model.name;
-      markDirty();
+function populateModels(models) {
+    const sel = document.getElementById("model-select");
+    sel.innerHTML = "";
+    models.forEach(m => {
+        const opt = document.createElement("option");
+        opt.value = m.name;
+        opt.textContent = `${m.name.charAt(0).toUpperCase() + m.name.slice(1)} (${m.size_mb}MB)`;
+        sel.appendChild(opt);
     });
-    container.appendChild(card);
-  });
+    if (currentSettings.model) sel.value = currentSettings.model;
 }
 
-function capitalize(s) {
-  return s.charAt(0).toUpperCase() + s.slice(1);
+function populateDevices({ devices }) {
+    const sel = document.getElementById("device-select");
+    sel.innerHTML = '<option value="">System Default</option>';
+    devices.forEach(dev => {
+        const opt = document.createElement("option");
+        opt.value = String(dev.index);
+        opt.textContent = dev.name;
+        sel.appendChild(opt);
+    });
+    if (currentSettings.device_index !== null) {
+        sel.value = String(currentSettings.device_index);
+    }
 }
 
 // ------------------------------------------------------------------ //
-/*  Language                                                            */
+//  Event Listeners                                                     //
 // ------------------------------------------------------------------ //
 
-document.getElementById("lang-select").addEventListener("change", (e) => {
-  pendingSettings.language = e.target.value || null;
-  markDirty();
+document.getElementById("mode-select").addEventListener("change", (e) => {
+    pendingSettings.mode = e.target.value;
+});
+
+document.getElementById("model-select").addEventListener("change", (e) => {
+    pendingSettings.model = e.target.value;
+});
+
+document.getElementById("device-select").addEventListener("change", (e) => {
+    const val = e.target.value;
+    pendingSettings.device_index = val === "" ? null : parseInt(val, 10);
+});
+
+document.getElementById("feedback-toggle").addEventListener("change", (e) => {
+    pendingSettings.audio_feedback = e.target.checked;
+});
+
+document.getElementById("paste-delay").addEventListener("change", (e) => {
+    pendingSettings.paste_delay_ms = parseInt(e.target.value, 10);
+});
+
+document.getElementById("save-btn").addEventListener("click", () => {
+    setStatus("Saving...");
+    window.flowtype.saveSettings(pendingSettings);
 });
 
 // ------------------------------------------------------------------ //
-/*  General toggles                                                     */
-// ------------------------------------------------------------------ //
-
-document.getElementById("toggle-startup").addEventListener("change", (e) => {
-  pendingSettings.launch_at_startup = e.target.checked;
-  markDirty();
-});
-
-document.getElementById("toggle-sounds").addEventListener("change", (e) => {
-  pendingSettings.audio_feedback = e.target.checked;
-  markDirty();
-});
-
-document.getElementById("paste-delay").addEventListener("input", (e) => {
-  const val = parseInt(e.target.value, 10);
-  document.getElementById("paste-delay-label").textContent = `${val}ms`;
-  pendingSettings.paste_delay_ms = val;
-  markDirty();
-});
-
-// ------------------------------------------------------------------ //
-/*  Save bar                                                            */
-// ------------------------------------------------------------------ //
-
-function showSaveBar() {
-  document.getElementById("save-bar").classList.add("visible");
-}
-
-function hideSaveBar() {
-  document.getElementById("save-bar").classList.remove("visible");
-}
-
-document.getElementById("btn-save").addEventListener("click", () => {
-  window.flowtype.saveSettings(pendingSettings);
-  hideSaveBar();
-  setStatus("ready", "Saved");
-  setTimeout(() => setStatus("ready", "Ready"), 2000);
-});
-
-document.getElementById("btn-discard").addEventListener("click", () => {
-  applySettings(currentSettings);
-  hideSaveBar();
-});
-
-// ------------------------------------------------------------------ //
-/*  IPC listeners from main                                             */
+//  IPC Listeners                                                       //
 // ------------------------------------------------------------------ //
 
 window.flowtype.on("settings_loaded", (settings) => {
-  applySettings(settings);
+    applySettings(settings);
 });
 
 window.flowtype.on("devices_loaded", (data) => {
-  populateDevices(data);
+    populateDevices(data);
 });
 
 window.flowtype.on("models_loaded", (models) => {
-  renderModels(models);
+    populateModels(models);
 });
 
 window.flowtype.on("transcription_done", ({ text }) => {
-  setStatus("ready", `Done: "${text.slice(0, 32)}${text.length > 32 ? "…" : ""}"`);
-  setTimeout(() => setStatus("ready", "Ready"), 4000);
+    setStatus(`Transcribed: "${text.slice(0, 20)}..."`);
+    setTimeout(() => setStatus("Ready"), 5000);
 });
 
 // ------------------------------------------------------------------ //
-/*  Init                                                                */
+//  Initialize                                                          //
 // ------------------------------------------------------------------ //
 
-setStatus("ready", "Loading…");
+setStatus("Loading...");
 window.flowtype.getSettings();
 window.flowtype.getDevices();
 window.flowtype.getModels();

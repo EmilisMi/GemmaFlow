@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowType Settings</title>
+    <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+    <div class="window-frame">
+        <!-- Custom Title Bar -->
+        <header class="title-bar">
+            <div class="title-drag">
+                <span class="app-name">FlowType</span>
+            </div>
+            <div class="window-controls">
+                <button id="minimize-btn" title="Minimize">
+                    <svg width="12" height="12" viewBox="0 0 12 12"><rect x="1" y="5.5" width="10" height="1" fill="currentColor"/></svg>
+                </button>
+                <button id="close-btn" class="close" title="Close">
+                    <svg width="12" height="12" viewBox="0 0 12 12"><path d="M1 1l10 10m0-10L1 11" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+                </button>
+            </div>
+        </header>
+
+        <main class="content-container">
+            <section class="hero-section">
+                <h1 class="hero-title">Settings</h1>
+                <p class="hero-tagline">Customize your dictation experience.</p>
+            </section>
+
+            <div class="settings-grid">
+                <!-- Activation Section -->
+                <section class="settings-card">
+                    <h2 class="card-title">Activation</h2>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="label">Hotkey</span>
+                            <span class="description">Global shortcut to toggle recording</span>
+                        </div>
+                        <div class="setting-control">
+                            <button id="hotkey-btn" class="hotkey-recorder">Ctrl + Space</button>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="label">Mode</span>
+                            <span class="description">How the hotkey behaves</span>
+                        </div>
+                        <div class="setting-control">
+                            <select id="mode-select" class="apple-select">
+                                <option value="toggle">Toggle (Press to start/stop)</option>
+                                <option value="ptt">Push-to-Talk (Hold to record)</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Engine Section -->
+                <section class="settings-card">
+                    <h2 class="card-title">Transcription</h2>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="label">Model</span>
+                            <span class="description">Balance between speed and accuracy</span>
+                        </div>
+                        <div class="setting-control">
+                            <select id="model-select" class="apple-select">
+                                <!-- Populated by JS -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="label">Input Device</span>
+                            <span class="description">Microphone to use for recording</span>
+                        </div>
+                        <div class="setting-control">
+                            <select id="device-select" class="apple-select">
+                                <!-- Populated by JS -->
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Feedback Section -->
+                <section class="settings-card">
+                    <h2 class="card-title">Preferences</h2>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="label">Audio Feedback</span>
+                            <span class="description">Play tones on start/stop</span>
+                        </div>
+                        <div class="setting-control">
+                            <label class="apple-switch">
+                                <input type="checkbox" id="feedback-toggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="label">Paste Delay</span>
+                            <span class="description">Wait time before injecting text (ms)</span>
+                        </div>
+                        <div class="setting-control">
+                            <input type="number" id="paste-delay" class="apple-input" min="0" max="2000" step="50">
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <footer class="settings-footer">
+                <div class="status-indicator" id="status-text">Ready</div>
+                <button id="save-btn" class="button-primary">Save Changes</button>
+            </footer>
+        </main>
+    </div>
+
+    <script src="settings.js"></script>
+</body>
+</html>
