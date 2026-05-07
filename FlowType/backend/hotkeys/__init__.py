@@ -1,0 +1,1 @@
+# FlowType hotkeys package

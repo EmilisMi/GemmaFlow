@@ -1,0 +1,12 @@
+{
+  "hotkey": "ctrl+space",
+  "mode": "toggle",
+  "model": "base",
+  "device_index": null,
+  "launch_at_startup": false,
+  "paste_delay_ms": 150,
+  "audio_feedback": true,
+  "indicator_position": { "x": null, "y": null },
+  "language": null,
+  "compute_type": "int8"
+}
