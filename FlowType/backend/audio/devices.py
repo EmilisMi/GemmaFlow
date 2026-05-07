@@ -17,19 +17,23 @@ def list_input_devices() -> list[dict]:
     Return a list of available microphone/input devices.
     Each entry: {"index": int, "name": str, "channels": int, "sample_rate": float}
     """
-    devices = []
+    devices_map = {}
     try:
         device_list = sd.query_devices()
         for i, dev in enumerate(device_list):
             if dev["max_input_channels"] > 0:
-                devices.append({
-                    "index": i,
-                    "name": dev["name"],
-                    "channels": dev["max_input_channels"],
-                    "sample_rate": dev["default_samplerate"],
-                    "is_default": False,
-                })
+                name = dev["name"]
+                # Keep the first one encountered, usually the most direct API
+                if name not in devices_map:
+                    devices_map[name] = {
+                        "index": i,
+                        "name": name,
+                        "channels": dev["max_input_channels"],
+                        "sample_rate": dev["default_samplerate"],
+                        "is_default": False,
+                    }
 
+        devices = list(devices_map.values())
         # Mark the default input device
         try:
             default_info = sd.query_devices(kind="input")

@@ -1,22 +1,22 @@
 /* 
- * FlowType — Apple Design System
+ * FlowType — Apple Design System (Dark Mode)
  * Based on DESIGN.md
  */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
 
 :root {
-    /* Colors */
-    --color-primary: #0066cc;
-    --color-primary-focus: #0071e3;
-    --color-ink: #1d1d1f;
-    --color-body: #1d1d1f;
+    /* Colors (Dark Mode Premium) */
+    --color-primary: #0071e3;
+    --color-primary-focus: #0077ed;
+    --color-ink: #f5f5f7;
+    --color-body: #f5f5f7;
     --color-body-muted: #86868b;
-    --color-canvas: #ffffff;
-    --color-canvas-parchment: #f5f5f7;
-    --color-surface-pearl: #fafafc;
-    --color-hairline: #e0e0e0;
-    --color-divider: #f0f0f0;
+    --color-canvas: #000000;
+    --color-canvas-parchment: #161617;
+    --color-surface-pearl: #1c1c1e;
+    --color-hairline: #333336;
+    --color-divider: #2c2c2e;
 
     /* Spacing */
     --spacing-xxs: 4px;
@@ -85,8 +85,9 @@ body {
 .app-name {
     font-size: 12px;
     font-weight: 600;
-    color: var(--color-ink);
-    letter-spacing: -0.12px;
+    color: var(--color-body-muted);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
 }
 
 .window-controls {
@@ -122,7 +123,7 @@ body {
 .content-container {
     flex-grow: 1;
     overflow-y: auto;
-    padding: var(--spacing-xl) var(--spacing-xl);
+    padding: var(--spacing-xl);
     background-color: var(--color-canvas-parchment);
 }
 
@@ -136,12 +137,13 @@ body {
     font-size: 40px;
     font-weight: 600;
     line-height: 1.1;
-    letter-spacing: -0.374px; /* Apple Tight Tracking */
+    letter-spacing: -0.374px;
     margin-bottom: var(--spacing-xs);
+    color: #ffffff;
 }
 
 .hero-tagline {
-    font-size: 21px;
+    font-size: 19px;
     font-weight: 400;
     color: var(--color-body-muted);
 }
@@ -151,7 +153,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-lg);
-    max-width: 800px;
+    max-width: 600px;
     margin: 0 auto;
 }
 
@@ -163,7 +165,7 @@ body {
 }
 
 .card-title {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -177,6 +179,7 @@ body {
     align-items: center;
     padding: var(--spacing-md) 0;
     border-bottom: 1px solid var(--color-divider);
+    gap: var(--spacing-lg);
 }
 
 .setting-item:last-child {
@@ -186,16 +189,29 @@ body {
 .setting-info {
     display: flex;
     flex-direction: column;
+    flex: 1;
+    min-width: 0; /* Ensures truncation/wrapping works */
 }
 
 .label {
     font-weight: 600;
     font-size: 17px;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .description {
     font-size: 14px;
     color: var(--color-body-muted);
+    line-height: 1.4;
+}
+
+.setting-control {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: flex-end;
 }
 
 /* Controls */
@@ -209,12 +225,13 @@ body {
     color: var(--color-ink);
     outline: none;
     transition: var(--transition-standard);
-    min-width: 180px;
+    min-width: 160px;
+    max-width: 240px;
 }
 
 .apple-select:focus, .apple-input:focus {
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.2);
 }
 
 .hotkey-recorder {
@@ -224,8 +241,9 @@ body {
     border-radius: var(--radius-sm);
     font-family: inherit;
     font-weight: 600;
+    color: var(--color-ink);
     cursor: pointer;
-    min-width: 180px;
+    min-width: 160px;
     transition: var(--transition-standard);
 }
 
@@ -279,14 +297,13 @@ body {
     width: 20px;
     left: 2px;
     bottom: 2px;
-    background-color: white;
+    background-color: #ffffff;
     transition: .3s;
     border-radius: 50%;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 input:checked + .slider {
-    background-color: #34c759; /* Apple Green for success/toggle */
+    background-color: #30d158;
 }
 
 input:checked + .slider:before {
@@ -301,10 +318,13 @@ input:checked + .slider:before {
     justify-content: space-between;
     align-items: center;
     border-top: 1px solid var(--color-hairline);
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .status-indicator {
-    font-size: 14px;
+    font-size: 13px;
     color: var(--color-body-muted);
 }
 
@@ -312,9 +332,9 @@ input:checked + .slider:before {
     background-color: var(--color-primary);
     color: white;
     font-family: inherit;
-    font-weight: 400;
-    font-size: 17px;
-    padding: 11px 22px;
+    font-weight: 500;
+    font-size: 15px;
+    padding: 10px 24px;
     border-radius: var(--radius-pill);
     border: none;
     cursor: pointer;
