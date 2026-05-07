@@ -170,7 +170,7 @@ function createIndicatorWindow() {
     width: winWidth,
     height: winHeight,
     x: Math.floor((width - winWidth) / 2),
-    y: height - winHeight - 30,
+    y: height - winHeight - 50,
     frame: false,
     transparent: true,
     alwaysOnTop: true,

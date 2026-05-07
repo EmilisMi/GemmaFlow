@@ -44,7 +44,7 @@ window.flowtype.on("audio_level", (level) => {
     if (document.body.classList.contains('recording')) {
         // Shift history left and add new level to the right
         history.shift();
-        history.push(level);
+        history.push(level * 0.8); // Slightly decreased sensitivity
         updateBars();
     }
 });
@@ -56,9 +56,9 @@ function updateBars() {
         
         // Base scale + sensitivity
         // We add a little bit of "life" even to quiet bars
-        const scale = 1 + (level * 12); 
+        const scale = 1 + (level * 8); 
         
-        bar.style.transform = `scaleY(${Math.min(10, scale)})`;
+        bar.style.transform = `scaleY(${Math.min(6, scale)})`;
         
         // Opacity reflects the intensity
         bar.style.opacity = 0.3 + (level * 0.7);
